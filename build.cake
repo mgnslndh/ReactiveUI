@@ -51,24 +51,20 @@ if (IsRunningOnWindows())
     });
 }
 
-var eventGenerators = new List<(string targetName, DirectoryPath destination)>
+var eventGenerators = new List<(DirectoryPath destination, IEnumerable<string> platforms)>
 {
-    ("android", MakeAbsolute(Directory("src/ReactiveUI.Events/"))),
-    ("ios", MakeAbsolute(Directory("src/ReactiveUI.Events/"))),
-    ("mac", MakeAbsolute(Directory("src/ReactiveUI.Events/"))),
-    ("tizen4", MakeAbsolute(Directory("src/ReactiveUI.Events/"))),
-    ("essentials", MakeAbsolute(Directory("src/ReactiveUI.Events.XamEssentials/"))),
-    ("tvos", MakeAbsolute(Directory("src/ReactiveUI.Events/"))),
-    ("xamforms", MakeAbsolute(Directory("src/ReactiveUI.Events.XamForms/"))),
+    (MakeAbsolute(Directory("src/ReactiveUI.Events/")), new[] { "android", "ios", "mac", "tizen4", "tvos" }),
+    (MakeAbsolute(Directory("src/ReactiveUI.Events.XamEssentials/")), new[] { "essentials" }),
+    (MakeAbsolute(Directory("src/ReactiveUI.Events.XamForms/")), new[] { "xamforms" }),
 };
 
 if (IsRunningOnWindows())
 {
-    eventGenerators.AddRange(new []
+    eventGenerators.AddRange(new (DirectoryPath destination, IEnumerable<string> platforms)[]
     {
-        ("wpf", MakeAbsolute(Directory("src/ReactiveUI.Events.WPF/"))),
-        ("uwp", MakeAbsolute(Directory("src/ReactiveUI.Events/"))),
-        ("winforms", MakeAbsolute(Directory("src/ReactiveUI.Events.Winforms/"))),
+        (MakeAbsolute(Directory("src/ReactiveUI.Events.WPF/")), new[] { "wpf" }),
+        // (MakeAbsolute(Directory("src/ReactiveUI.Events.Winforms/")), new[] { "winforms" }),
+        // (MakeAbsolute(Directory("src/ReactiveUI.Events/")), new[] { "uwp" }),
     });
 }
 
@@ -105,7 +101,7 @@ Task("GenerateEvents")
     var eventsArtifactDirectory = BuildParameters.ArtifactsDirectory.Combine("Events");
     EnsureDirectoryExists(eventsArtifactDirectory);
 
-    var workingDirectory = MakeAbsolute(Directory("./src/EventBuilder/bin/Release/netcoreapp2.1"));
+    var workingDirectory = MakeAbsolute(Directory("./src/EventBuilder/EventBuilder.Console/bin/Release/netcoreapp2.1"));
     var eventBuilder = workingDirectory.CombineWithFilePath("EventBuilder.dll");
 
     DirectoryPath referenceAssembliesPath = null;
@@ -120,26 +116,26 @@ Task("GenerateEvents")
 
     foreach (var eventGenerator in eventGenerators)
     {
-        var (platform, directory) = eventGenerator;
+        var (directory, platforms) = eventGenerator;
 
         var settings = new DotNetCoreExecuteSettings
         {
             WorkingDirectory = workingDirectory,
         };
 
-        var filename = String.Format("Events_{0}.cs", platform);
-        var output = directory.CombineWithFilePath(filename);
-
-        Information("Generating events for '{0}'", platform);
+        var platformsString = string.Join(", ", platforms);
+        Information("Generating events for platforms '{0}'", platformsString);
         DotNetCoreExecute(
                     eventBuilder,
                     new ProcessArgumentBuilder()
-                        .AppendSwitch("--platform","=", platform)
+                        .Append("generate-platform")
+                        .AppendSwitchQuoted("--platforms", "=", platformsString)
                         .AppendSwitchQuoted("--reference","=", referenceAssembliesPath.ToString())
-                        .AppendSwitchQuoted("--output-path", "=", output.ToString()),
+                        .AppendSwitchQuoted("--output-path", "=", directory.ToString())
+                        .AppendSwitchQuoted("--output-prefix", "=", "Events_"),
                     settings);
 
-        Information("The events have been written to '{0}'", output);
+        Information("The events have been written to '{0}'", directory);
     }
 
     CopyFiles(GetFiles("./src/ReactiveUI.**/Events_*.cs"), eventsArtifactDirectory);
