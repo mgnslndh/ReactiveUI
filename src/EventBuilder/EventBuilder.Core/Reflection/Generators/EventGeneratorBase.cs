@@ -28,7 +28,7 @@ namespace EventBuilder.Core.Reflection.Generators
         /// <param name="eventDetails">The details of the event to wrap.</param>
         /// <param name="dataObjectName">The name of the item where the event is stored.</param>
         /// <returns>The property declaration.</returns>
-        protected PropertyDeclarationSyntax GenerateEventWrapperObservable(IEvent eventDetails, string dataObjectName)
+        protected static PropertyDeclarationSyntax GenerateEventWrapperObservable(IEvent eventDetails, string dataObjectName)
         {
             // Produces:
             // public System.IObservable<eventArgs, eventHandler> EventName => System.Reactive.Linq.Observable.FromEventPattern();
@@ -37,8 +37,12 @@ namespace EventBuilder.Core.Reflection.Generators
 
             var returnType = eventDetails.ReturnType.GenerateFullGenericName();
 
-            var property = PropertyDeclaration(observableEventArgType, eventDetails.Name)
-                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+            SyntaxTokenList modifiers = eventDetails.IsStatic
+                ? TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
+                : TokenList(Token(SyntaxKind.PublicKeyword));
+
+            return PropertyDeclaration(observableEventArgType, eventDetails.Name)
+                .WithModifiers(modifiers)
                     .WithExpressionBody(
                         ArrowExpressionClause(
                             InvocationExpression(
@@ -83,13 +87,6 @@ namespace EventBuilder.Core.Reflection.Generators
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
                 .WithObsoleteAttribute(eventDetails)
                 .WithLeadingTrivia(XmlSyntaxFactory.GenerateSummarySeeAlsoComment("Gets an observable which signals when when the {0} event triggers.", eventDetails.FullName));
-
-            if (eventDetails.IsStatic)
-            {
-                property = property.WithModifiers(TokenList(Token(SyntaxKind.StaticKeyword)));
-            }
-
-            return property;
         }
 
         private static ArgumentSyntax GenerateArgumentEventAccessor(SyntaxKind accessor, string eventName, string dataObjectName)

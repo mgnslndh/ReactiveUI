@@ -43,19 +43,15 @@ namespace EventBuilder.Core.Reflection.Generators
         {
             foreach (var declaration in declarations)
             {
-                var classDeclaration = ClassDeclaration(declaration.typeDefinition.Name + "Rx")
-                    .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.PartialKeyword)))
+                var modifiers = declaration.typeDefinition.IsAbstract
+                    ? TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.PartialKeyword))
+                    : TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AbstractKeyword), Token(SyntaxKind.PartialKeyword));
+                yield return ClassDeclaration(declaration.typeDefinition.Name + "Rx")
+                    .WithModifiers(modifiers)
                     .WithMembers(List(GenerateObservableMembers(declaration.methods)))
                     .WithBaseList(BaseList(SingletonSeparatedList<BaseTypeSyntax>(SimpleBaseType(IdentifierName(declaration.typeDefinition.GenerateFullGenericName())))))
                     .WithLeadingTrivia(XmlSyntaxFactory.GenerateSummarySeeAlsoComment("Wraps delegates events from {0} into Observables.", declaration.typeDefinition.GenerateFullGenericName()))
                     .WithObsoleteAttribute(declaration.typeDefinition);
-
-                if (declaration.typeDefinition.IsAbstract)
-                {
-                    classDeclaration = classDeclaration.WithModifiers(TokenList(Token(SyntaxKind.AbstractKeyword)));
-                }
-
-                yield return classDeclaration;
             }
         }
 

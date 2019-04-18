@@ -119,10 +119,5 @@ namespace EventBuilder.Core.Reflection
             sb.Append("/// <returns>").Append(returnValueText).AppendLine("</returns>");
             return ParseLeadingTrivia(sb.ToString());
         }
-
-        public static XmlNodeSyntax See(string seeAlsoType)
-        {
-            return XmlEmptyElement(XmlName("see")).WithAttributes(SingletonList<XmlAttributeSyntax>(XmlCrefAttribute(TypeCref(IdentifierName(seeAlsoType)))));
-        }
     }
 }

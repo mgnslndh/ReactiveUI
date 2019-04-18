@@ -161,7 +161,7 @@ namespace EventBuilder.Core.Reflection
 
             var param = invoke.Parameters[1];
 
-            return param.Type.FullName;
+            return param.Type.GenerateFullGenericName();
         }
 
         private static IImmutableList<ITypeDefinition> GetPublicTypeDefinitionsWithEvents(ICompilation compilation)
