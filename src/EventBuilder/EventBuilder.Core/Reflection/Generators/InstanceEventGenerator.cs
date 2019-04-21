@@ -88,7 +88,7 @@ namespace EventBuilder.Core.Reflection.Generators
         private ClassDeclarationSyntax GenerateEventWrapperClass(ITypeDefinition typeDefinition, IEnumerable<IEvent> events)
         {
             var members = new List<MemberDeclarationSyntax> { GenerateEventWrapperField(typeDefinition), GenerateEventWrapperClassConstructor(typeDefinition) };
-            members.AddRange(events.OrderBy(x => x.Name).Select(x => GenerateEventWrapperObservable(x, DataFieldName)));
+            members.AddRange(events.OrderBy(x => x.Name).Select(x => GenerateEventWrapperObservable(x, DataFieldName)).Where(x => x != null));
 
             return ClassDeclaration(typeDefinition.Name + "Events")
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))

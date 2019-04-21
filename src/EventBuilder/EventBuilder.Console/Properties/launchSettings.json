@@ -2,7 +2,7 @@
   "profiles": {
     "EventBuilder.Console": {
       "commandName": "Project",
-      "commandLineArgs": "generate-platform --platforms=\"android, ios, mac, tizen4, tvos\" --reference=\"C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/IDE/ReferenceAssemblies/Microsoft/Framework\" --output-path=\"C:/source/reactiveui/reactiveui-rewrite/src/ReactiveUI.Events\" --output-prefix=\"Events_\""
+      "commandLineArgs": "generate-platform --platforms=\"tizen4, tvos\" --reference=\"C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/IDE/ReferenceAssemblies/Microsoft/Framework\" --output-path=\"C:/source/reactiveui/reactiveui-rewrite/src/ReactiveUI.Events\" --output-prefix=\"Events_\""
     }
   }
 }

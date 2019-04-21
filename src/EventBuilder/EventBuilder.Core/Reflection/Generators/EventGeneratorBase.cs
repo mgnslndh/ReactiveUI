@@ -32,7 +32,14 @@ namespace EventBuilder.Core.Reflection.Generators
         {
             // Produces:
             // public System.IObservable<eventArgs, eventHandler> EventName => System.Reactive.Linq.Observable.FromEventPattern();
-            var eventArgsType = IdentifierName(eventDetails.GetEventArgsName());
+            var eventArgsName = eventDetails.GetEventArgsName();
+
+            if (eventArgsName == null)
+            {
+                return null;
+            }
+
+            var eventArgsType = IdentifierName(eventArgsName);
             var observableEventArgType = TypeArgumentList(SingletonSeparatedList<TypeSyntax>(eventArgsType)).GenerateObservableType();
 
             var returnType = eventDetails.ReturnType.GenerateFullGenericName();

@@ -75,6 +75,7 @@ namespace EventBuilder.Core
                 await platformExtractor.Extract(defaultReferenceAssemblyLocation).ConfigureAwait(false);
 
                 await ExtractEventsFromAssemblies(outputPath, prefix + platform, platformExtractor.Assemblies, platformExtractor.SearchDirectories).ConfigureAwait(false);
+                Log.Information("Finished platform {0}", platform);
             }
         }
 
