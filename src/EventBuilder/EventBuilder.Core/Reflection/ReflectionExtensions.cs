@@ -51,7 +51,7 @@ namespace EventBuilder.Core.Reflection
         {
             var list = GetPublicTypeDefinitionsWithEvents(compilation);
             return list
-                .Where(x => x.Events.Any(eventDetails => !eventDetails.IsStatic))
+                .Where(x => x.Events.Any(eventDetails => !eventDetails.IsStatic && eventDetails.))
                 .OrderBy(x => x.Namespace)
                 .ThenBy(x => x.Name);
         }
@@ -154,7 +154,8 @@ namespace EventBuilder.Core.Reflection
             }
 
             var invoke = type.GetMethods().First(x => x.Name == "Invoke");
-            if (invoke.Parameters.Count < 2)
+
+            if (invoke.Parameters.Count != 2)
             {
                 return null;
             }

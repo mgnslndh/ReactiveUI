@@ -102,7 +102,7 @@ Task("GenerateEvents")
     var eventsArtifactDirectory = BuildParameters.ArtifactsDirectory.Combine("Events");
     EnsureDirectoryExists(eventsArtifactDirectory);
 
-    var workingDirectory = MakeAbsolute(Directory("./src/EventBuilder/EventBuilder.Console/bin/Release/netcoreapp2.1"));
+    var workingDirectory = MakeAbsolute(Directory("./src/EventBuilder/EventBuilder.Console/bin/Release/netcoreapp2.2"));
     var eventBuilder = workingDirectory.CombineWithFilePath("EventBuilder.dll");
 
     DirectoryPath referenceAssembliesPath = null;

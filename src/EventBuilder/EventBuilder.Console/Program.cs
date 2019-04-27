@@ -12,6 +12,7 @@ using CommandLine.Text;
 using EventBuilder.CommandOptions;
 using EventBuilder.Core;
 using Serilog;
+using Serilog.Events;
 using Parser = CommandLine.Parser;
 
 namespace EventBuilder.Console
@@ -25,7 +26,9 @@ namespace EventBuilder.Console
         public static async Task<int> Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                .ReadFrom.AppSettings()
+                .MinimumLevel.Verbose()
+                .WriteTo.ColoredConsole(LogEventLevel.Information)
+                .WriteTo.File("EventBuilder.Log")
                 .CreateLogger();
 
             // allow app to be debugged in visual studio.

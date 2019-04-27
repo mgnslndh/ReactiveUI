@@ -42,6 +42,7 @@ namespace EventBuilder.Core.Reflection.Generators
                                 ObjectCreationExpression(eventsClassName)
                                     .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("item")))))))
                             .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
+                            .WithObsoleteAttribute(declaration)
                             .WithLeadingTrivia(XmlSyntaxFactory.GenerateSummarySeeAlsoComment("A wrapper class which wraps all the events contained within the {0} class.", declaration.GenerateFullGenericName()));
                     })));
         }
@@ -73,6 +74,18 @@ namespace EventBuilder.Core.Reflection.Generators
                 .WithModifiers(TokenList(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword)));
         }
 
+        private static ClassDeclarationSyntax GenerateEventWrapperClass(ITypeDefinition typeDefinition, IEnumerable<IEvent> events)
+        {
+            var members = new List<MemberDeclarationSyntax> { GenerateEventWrapperField(typeDefinition), GenerateEventWrapperClassConstructor(typeDefinition) };
+            members.AddRange(events.OrderBy(x => x.Name).Select(x => GenerateEventWrapperObservable(x, DataFieldName)).Where(x => x != null));
+
+            return ClassDeclaration(typeDefinition.Name + "Events")
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+                .WithMembers(List(members))
+                .WithObsoleteAttribute(typeDefinition)
+                .WithLeadingTrivia(XmlSyntaxFactory.GenerateSummarySeeAlsoComment("A class which wraps the events contained within the {0} class as observables.", typeDefinition.GenerateFullGenericName()));
+        }
+
         private IEnumerable<ClassDeclarationSyntax> GenerateClasses(string namespaceName, IEnumerable<(ITypeDefinition typeDefinition, IEnumerable<IEvent> events)> declarations)
         {
             var classes = new List<ClassDeclarationSyntax>();
@@ -83,17 +96,6 @@ namespace EventBuilder.Core.Reflection.Generators
             classes.AddRange(orderedTypeDeclarations.Select(x => GenerateEventWrapperClass(x.typeDefinition, x.events)));
 
             return classes;
-        }
-
-        private ClassDeclarationSyntax GenerateEventWrapperClass(ITypeDefinition typeDefinition, IEnumerable<IEvent> events)
-        {
-            var members = new List<MemberDeclarationSyntax> { GenerateEventWrapperField(typeDefinition), GenerateEventWrapperClassConstructor(typeDefinition) };
-            members.AddRange(events.OrderBy(x => x.Name).Select(x => GenerateEventWrapperObservable(x, DataFieldName)).Where(x => x != null));
-
-            return ClassDeclaration(typeDefinition.Name + "Events")
-                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-                .WithMembers(List(members))
-                .WithLeadingTrivia(XmlSyntaxFactory.GenerateSummarySeeAlsoComment("A class which wraps the events contained within the {0} class as observables.", typeDefinition.GenerateFullGenericName()));
         }
     }
 }

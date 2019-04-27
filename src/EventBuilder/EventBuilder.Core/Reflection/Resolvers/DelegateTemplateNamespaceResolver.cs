@@ -32,15 +32,16 @@ namespace EventBuilder.Core.Reflection.Resolvers
 
         public IEnumerable<NamespaceDeclarationSyntax> Create(ICompilation compilation)
         {
-            IEnumerable<(ITypeDefinition typeDefinition, IEnumerable<IMethod> methods)> values = compilation.GetPublicNonGenericTypeDefinitions()
+            IEnumerable<(ITypeDefinition typeDefinition, bool isAbstract, IEnumerable<IMethod> methods)> values = compilation.GetPublicNonGenericTypeDefinitions()
                 .Where(
                     x => x.Kind != TypeKind.Interface
                     && (!IsMulticastDelegateDerived(x)
                     || !x.DirectBaseTypes.Any())
                     && !_garbageTypeList.Any(y => x.FullName.Contains(y))
                     && CocoaDelegateNames.Any(cocoaName => x.FullName.EndsWith(cocoaName, StringComparison.OrdinalIgnoreCase)))
-                .Select(x => (x, GetPublicDelegateMethods(x)))
-                .Where(x => x.Item2.Any());
+                .Select(typeDef => new { TypeDefinition = typeDef, IsAbstract = typeDef.Methods.Any(method => method.ReturnType.FullName != RoslynHelpers.VoidType && method.IsAbstract) })
+                .Select(x => (x.TypeDefinition, x.IsAbstract, GetPublicDelegateMethods(x.TypeDefinition)))
+                .Where(x => x.Item3.Any());
 
             return DelegateGenerator.Generate(values);
         }
@@ -53,7 +54,7 @@ namespace EventBuilder.Core.Reflection.Resolvers
         private static IEnumerable<IMethod> GetPublicDelegateMethods(ITypeDefinition typeDefinition)
         {
             return typeDefinition.Methods
-                .Where(x => x.IsVirtual && !x.IsConstructor && !x.IsAccessor && x.ReturnType.FullName == "System.Void" && x.Parameters.All(y => !y.IsRef) && !BannedMethods.Contains(x.Name))
+                .Where(x => (x.IsVirtual || x.IsAbstract) && !x.IsConstructor && !x.IsAccessor && x.ReturnType.FullName == RoslynHelpers.VoidType && x.Parameters.All(y => !y.IsRef) && !BannedMethods.Contains(x.Name))
                 .GroupBy(x => x.Name)
                 .Select(x => x.OrderByDescending(y => y.Parameters.Count).First());
         }

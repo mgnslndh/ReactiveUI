@@ -21,6 +21,7 @@ namespace EventBuilder.Core.Reflection
     internal static class RoslynHelpers
     {
         internal const string ObservableUnitName = "System.Reactive.Unit";
+        internal const string VoidType = "System.Void";
 
         /// <summary>
         /// Gets an argument which access System.Reactive.Unit.Default member.

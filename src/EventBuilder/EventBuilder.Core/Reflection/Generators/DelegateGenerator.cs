@@ -30,7 +30,7 @@ namespace EventBuilder.Core.Reflection.Generators
         /// </summary>
         /// <param name="declarations">The declarations to add.</param>
         /// <returns>An array of namespace declarations.</returns>
-        internal static IEnumerable<NamespaceDeclarationSyntax> Generate(IEnumerable<(ITypeDefinition typeDefinition, IEnumerable<IMethod> methods)> declarations) => declarations.GroupBy(x => x.typeDefinition.Namespace)
+        internal static IEnumerable<NamespaceDeclarationSyntax> Generate(IEnumerable<(ITypeDefinition typeDefinition, bool isAbstract, IEnumerable<IMethod> methods)> declarations) => declarations.GroupBy(x => x.typeDefinition.Namespace)
             .Select(x => NamespaceDeclaration(IdentifierName(x.Key)).WithMembers(List<MemberDeclarationSyntax>(GenerateClasses(x))));
 
         /// <summary>
@@ -38,14 +38,13 @@ namespace EventBuilder.Core.Reflection.Generators
         /// </summary>
         /// <param name="declarations">Our class declarations along with the methods we want to generate the values for.</param>
         /// <returns>The generated class declarations.</returns>
-        /// <seealso cref=""/> cref=""/>
-        private static IEnumerable<ClassDeclarationSyntax> GenerateClasses(IEnumerable<(ITypeDefinition typeDefinition, IEnumerable<IMethod> methods)> declarations)
+        private static IEnumerable<ClassDeclarationSyntax> GenerateClasses(IEnumerable<(ITypeDefinition typeDefinition, bool isAbstract, IEnumerable<IMethod> methods)> declarations)
         {
             foreach (var declaration in declarations)
             {
-                var modifiers = declaration.typeDefinition.IsAbstract
-                    ? TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.PartialKeyword))
-                    : TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AbstractKeyword), Token(SyntaxKind.PartialKeyword));
+                var modifiers = declaration.typeDefinition.IsAbstract || declaration.isAbstract
+                    ? TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AbstractKeyword), Token(SyntaxKind.PartialKeyword))
+                    : TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.PartialKeyword));
                 yield return ClassDeclaration(declaration.typeDefinition.Name + "Rx")
                     .WithModifiers(modifiers)
                     .WithMembers(List(GenerateObservableMembers(declaration.methods)))
@@ -119,17 +118,11 @@ namespace EventBuilder.Core.Reflection.Generators
             // public override void MethodName(params..) => _methodName.OnNext(...);
             InvocationExpressionSyntax methodBody = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(observableName), IdentifierName("OnNext")));
 
-            var methodParameterList = ParameterList();
+            var methodParameterList = GenerateMethodParameters(method);
 
             // If we have any members call our observables with the parameters.
             if (method.Parameters.Count > 0)
             {
-                methodParameterList = ParameterList(
-                    SeparatedList(
-                        method.Parameters.Select(
-                            x => Parameter(Identifier(x.Name))
-                                .WithType(IdentifierName(x.Type.GenerateFullGenericName())))));
-
                 // If we have only one member, just pass that directly, since our observable will have one generic type parameter.
                 // If we have more than one parameter we have to pass them by value tuples, since observables only have one generic type parameter.
                 if (method.Parameters.Count == 1)
@@ -153,6 +146,20 @@ namespace EventBuilder.Core.Reflection.Generators
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
                 .WithLeadingTrivia(XmlSyntaxFactory.InheritdocSyntax)
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+        }
+
+        private static ParameterListSyntax GenerateMethodParameters(IMethod method)
+        {
+            if (method.Parameters.Count == 0)
+            {
+                return ParameterList();
+            }
+
+            return ParameterList(
+                SeparatedList(
+                    method.Parameters.Select(
+                        x => Parameter(Identifier(x.Name))
+                            .WithType(IdentifierName(x.Type.GenerateFullGenericName())))));
         }
     }
 }
