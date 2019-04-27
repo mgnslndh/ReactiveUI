@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EventBuilder.Core.PlatformExtractors
+namespace EventBuilder.Core.Extractors.PlatformExtractors
 {
     /// <inheritdoc />
     /// <summary>

@@ -24,6 +24,11 @@ namespace EventBuilder.CommandOptions
         /// </summary>
         [Option('v', "version", Required = true, HelpText = "Specify the NuGet version number.")]
         public string NugetVersion { get; set; }
+
+        /// <summary>
+        /// Gets or sets the reference assemblies.
+        /// </summary>
+        [Option('t', "target-framework", Required = true, HelpText = "Specify the Target framework to extract for.")]
+        public string TargetFramework { get; set; }
     }
-}
 }

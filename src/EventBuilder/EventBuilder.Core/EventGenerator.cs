@@ -9,7 +9,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using EventBuilder.Core.PlatformExtractors;
+
+using EventBuilder.Core.Extractors.PlatformExtractors;
 using EventBuilder.Core.Reflection;
 using EventBuilder.Core.Reflection.Resolvers;
 using Microsoft.CodeAnalysis;
@@ -44,19 +45,6 @@ namespace EventBuilder.Core
             new WPF(),
             new XamForms(),
         }.ToImmutableDictionary(x => x.Platform);
-
-        /// <summary>
-        /// Extracts the events and delegates from the specified platform.
-        /// </summary>
-        /// <param name="outputPath">The path where to output the files.</param>
-        /// <param name="prefix">The prefix to add to the start of the output file.</param>
-        /// <param name="defaultReferenceAssemblyLocation">A directory path to where reference assemblies can be located.</param>
-        /// <param name="platform">The platforms to generate for.</param>
-        /// <returns>A task to monitor the progress.</returns>
-        public static Task ExtractEventsFromAssembly(string outputPath, string prefix, string defaultReferenceAssemblyLocation, AutoPlatform platform)
-        {
-            return ExtractEventsFromAssemblies(outputPath, prefix, defaultReferenceAssemblyLocation, new[] { platform });
-        }
 
         /// <summary>
         /// Extracts the events and delegates from the specified platform.

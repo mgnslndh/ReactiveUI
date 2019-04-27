@@ -7,23 +7,28 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EventBuilder.Core.PlatformExtractors
+namespace EventBuilder.Core.Extractors.PlatformExtractors
 {
     /// <summary>
-    /// Mac platform assemblies and events.
+    /// TV OS platform assemblies and events.
     /// </summary>
-    public class Mac : BasePlatform
+    public class TVOS : BasePlatform
     {
         /// <inheritdoc />
-        public override AutoPlatform Platform => AutoPlatform.Mac;
+        public override AutoPlatform Platform => AutoPlatform.TVOS;
 
         /// <inheritdoc />
         public override Task Extract(string referenceAssembliesLocation)
         {
+            if (PlatformHelper.IsRunningOnMono())
+            {
+                referenceAssembliesLocation = Path.Combine(referenceAssembliesLocation, "Xamarin.iOS.framework/Versions/Current/lib/mono");
+            }
+
             var assemblies =
                 Directory.GetFiles(
-                    Path.Combine(referenceAssembliesLocation, "Xamarin.Mac"),
-                    "Xamarin.Mac.dll",
+                    Path.Combine(referenceAssembliesLocation, "Xamarin.TVOS"),
+                    "Xamarin.TVOS.dll",
                     SearchOption.AllDirectories);
 
             var latestVersion = assemblies.Last();

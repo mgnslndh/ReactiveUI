@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace EventBuilder.Core.PlatformExtractors
+namespace EventBuilder.Core.Extractors.PlatformExtractors
 {
     /// <summary>
     /// Base platform.

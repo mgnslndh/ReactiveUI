@@ -24,12 +24,7 @@ namespace EventBuilder.Core.Reflection.Generators
         public override IEnumerable<NamespaceDeclarationSyntax> Generate(IEnumerable<(ITypeDefinition typeDefinition, IEnumerable<IEvent> events)> declarations) => declarations.GroupBy(x => x.typeDefinition.Namespace)
             .Select(x => NamespaceDeclaration(IdentifierName(x.Key)).WithMembers(List<MemberDeclarationSyntax>(GenerateClasses(x.Key, x))));
 
-        private IEnumerable<ClassDeclarationSyntax> GenerateClasses(string namespaceName, IEnumerable<(ITypeDefinition typeDefinition, IEnumerable<IEvent> events)> declarations)
-        {
-            return declarations.OrderBy(x => x.typeDefinition.Name).Select(x => GenerateStaticClass(namespaceName, x.typeDefinition, x.events));
-        }
-
-        private ClassDeclarationSyntax GenerateStaticClass(string namespaceName, ITypeDefinition typeDefinition, IEnumerable<IEvent> events)
+        private static ClassDeclarationSyntax GenerateStaticClass(string namespaceName, ITypeDefinition typeDefinition, IEnumerable<IEvent> events)
         {
             // Produces:
             // public static class EventExtensions
@@ -38,6 +33,11 @@ namespace EventBuilder.Core.Reflection.Generators
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword)))
                 .WithLeadingTrivia(XmlSyntaxFactory.GenerateSummarySeeAlsoComment("A class that contains extension methods to wrap events contained within static classes within the {0} namespace.", namespaceName))
                 .WithMembers(List<MemberDeclarationSyntax>(events.OrderBy(x => x.Name).Select(x => GenerateEventWrapperObservable(x, typeDefinition.GenerateFullGenericName()))));
+        }
+
+        private IEnumerable<ClassDeclarationSyntax> GenerateClasses(string namespaceName, IEnumerable<(ITypeDefinition typeDefinition, IEnumerable<IEvent> events)> declarations)
+        {
+            return declarations.OrderBy(x => x.typeDefinition.Name).Select(x => GenerateStaticClass(namespaceName, x.typeDefinition, x.events));
         }
     }
 }

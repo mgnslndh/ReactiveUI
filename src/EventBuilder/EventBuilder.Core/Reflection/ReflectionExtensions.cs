@@ -51,7 +51,7 @@ namespace EventBuilder.Core.Reflection
         {
             var list = GetPublicTypeDefinitionsWithEvents(compilation);
             return list
-                .Where(x => x.Events.Any(eventDetails => !eventDetails.IsStatic && eventDetails.))
+                .Where(x => x.Events.Any(eventDetails => !eventDetails.IsStatic))
                 .OrderBy(x => x.Namespace)
                 .ThenBy(x => x.Name);
         }
